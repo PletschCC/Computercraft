@@ -1,1 +1,41 @@
-test
+--
+-- Copyright (c) 2016 PletschCC
+--
+-- PATH: system/programs
+-- FILE: ServiceLoader
+--
+
+local args = {...}
+if #args == 0 then
+  print("Usage: ServiceLoader <directory>")
+  return
+end
+
+local path = args[1]
+
+if fs.exists(path.."/temp") then
+  fs.delete(path.."/temp")
+end
+
+local ser = fs.list(path)
+
+local file = fs.open(path.."/temp","w")
+
+for i=1,#ser do
+  local pF = path.."/"..ser[i]
+  file.writeLine("local function "..ser[i].."()")
+  file.writeLine("  shell.run\(\""..pF.."\"\)")
+  file.writeLine("end")
+  file.writeLine("")
+end
+
+local sStr = ser[1]
+
+for i=2,#ser do
+  sStr = sStr..","..ser[i]
+end
+
+file.writeLine("while true do")
+file.writeLine("  parallel.waitForAll("..sStr..")")
+file.writeLine("end")
+file.close()
